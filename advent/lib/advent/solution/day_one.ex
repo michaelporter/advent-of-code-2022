@@ -18,20 +18,10 @@ defmodule Advent.Solution.DayOne do
     Enum.sort([first, second]) |> List.last
   end
 
-  # I don't think this is exactly how this function feature is meant to be used?
-  defp highest_three(contender, []) do
-    [contender]
-  end
-
-  defp highest_three(contender, [a]) do
-    [contender, a]
-  end
-
-  defp highest_three(contender, [a, b]) do
-    [contender, a, b]
-  end
-
-  defp highest_three(contender, current_three) do
-    [contender | current_three] |> Enum.sort |> Enum.slice(1, 3)
+  defp highest_three(contender, current_three \\ []) do
+    case current_three do
+      [a, b, c] -> [contender | current_three] |> Enum.sort |> Enum.slice(1, 3)
+      _ -> [contender | current_three]
+    end
   end
 end
