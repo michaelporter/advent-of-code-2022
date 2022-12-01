@@ -1,5 +1,5 @@
 defmodule Advent.Solution.DayOne do
-  def part_one do
-    "RESULTS DAY ONE PART ONE"
+  def part_one(input_data) do
+
   end
 end
