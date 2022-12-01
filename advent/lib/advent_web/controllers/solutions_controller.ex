@@ -13,7 +13,7 @@ defmodule AdventWeb.SolutionsController do
     |> render("index.html")
   end
 
-  def day_one_part_two(conn, params) do
+  def day_one_part_two(conn, params) do # obv repetitive and the route is hardcoded
     input_data = fetch_input_data(1)
     IO.puts inspect(input_data)
     result = Advent.Solution.DayOne.part_two(input_data)
@@ -39,6 +39,9 @@ defmodule AdventWeb.SolutionsController do
   defp parse_response_body(body) do
     String.trim_trailing(body)
     |> String.split("\n\n")
-    |> Enum.map(fn elf -> String.split(elf, "\n")end) #  |> Enum.map(fn item -> String.to_integer(item) end) end)
+    |> Enum.map(fn elf ->
+      String.split(elf, "\n")
+      |> Enum.map(fn item -> String.to_integer(item) end)
+    end)
   end
 end
