@@ -8,6 +8,12 @@ Running it via docker-compose:
 docker-compose up --build
 ```
 
+Or with an interactive iex shell
+
+```
+docker run --env ADVENT_SESSION_ID=$ADVENT_SESSION_ID -it advent-1 iex -S mix phx.server
+```
+
 Not sure how I'll structure the Solution context yet. Still need to make the results UI useful, but that can come when I have solution formats.
 
 ---

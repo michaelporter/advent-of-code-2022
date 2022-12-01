@@ -18,9 +18,7 @@ defmodule AdventWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
-    get "/sup", SupController, :index
-
-    get "/solutions/:day", SolutionsController, :day_one_part_one
+    get "/solutions/:day", SolutionsController, :day_one_part_two
   end
 
   # Other scopes may use custom stacks.
