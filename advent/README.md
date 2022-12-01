@@ -1,5 +1,19 @@
 # Advent
 
+Repo for Phoenix App that contains Advent of Code Solutions for 2022.
+
+Running it via docker-compose:
+
+```
+docker-compose up --build
+```
+
+Not sure how I'll structure the Solution context yet. Still need to make the results UI useful, but that can come when I have solution formats.
+
+---
+
+# Original Phoenix README Below: 
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
