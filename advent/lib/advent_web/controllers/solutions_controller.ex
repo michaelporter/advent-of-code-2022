@@ -15,7 +15,6 @@ defmodule AdventWeb.SolutionsController do
 
   def day_one_part_two(conn, params) do # obv repetitive and the route is hardcoded
     input_data = fetch_input_data(1)
-    IO.puts inspect(input_data)
     result = Advent.Solution.DayOne.part_two(input_data)
 
     conn

@@ -11,17 +11,15 @@ defmodule Advent.Solution.DayOne do
       Enum.reduce(elf_backpack, 0, fn item, calories -> item + calories end)
       |> highest_three(top_three)
     end)
-    |> Enum.reduce(fn (elf, total) -> elf + total end)
+    |> Enum.reduce(fn elf, total -> elf + total end)
   end
 
-  defp highest_one(first, second) do # this feels bad
-    cond do
-      first < second -> second
-      true -> first
-    end
+  defp highest_one(first, second) do
+    Enum.sort([first, second]) |> List.last
   end
 
-  defp highest_three(contender, []) do # I don't think this is exactly how this is meant to be used...
+  # I don't think this is exactly how this function feature is meant to be used?
+  defp highest_three(contender, []) do
     [contender]
   end
 
