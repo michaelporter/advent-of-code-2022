@@ -18,10 +18,10 @@ defmodule Advent.Solution.DayOne do
     Enum.sort([first, second]) |> List.last
   end
 
-  defp highest_three(contender, current_three \\ []) do
+  defp highest_three(contender, current_set \\ []) do
     case current_three do
-      [a, b, c] -> [contender | current_three] |> Enum.sort |> Enum.slice(1, 3)
-      _ -> [contender | current_three]
+      [a, b, c] -> [contender | current_set] |> Enum.sort |> Enum.slice(1, 3)
+      _ -> [contender | current_set]
     end
   end
 end
