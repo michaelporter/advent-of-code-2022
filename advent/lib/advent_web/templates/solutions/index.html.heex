@@ -1,7 +1,9 @@
 <header>
   <nav>
     <ul>
-      <li><a href={"/solutions/#{@day}"}><%= @day %></a></li>
+    <%= for num <- 1..25 do %>
+      <li><a href={"/solutions/#{num}"}><%= num %></a></li>
+    <%= end %>
     </ul>
   </nav>
 </header>
