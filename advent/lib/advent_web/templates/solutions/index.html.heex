@@ -1,8 +1,19 @@
+<header>
+  <nav>
+    <ul>
+      <li><a href={"/solutions/#{@day}"}><%= @day %></a></li>
+    </ul>
+  </nav>
+</header>
+
 <section class="phx-hero">
   <h1>Solutions for Day <%= @day %></h1>
 </section>
 
-<section class="row">
-  <h1>My Solution:</h1>
-  <p><%= @result %></p>
+<section class="">
+  <h1>Part One:</h1>
+  <p><%= @part_one %></p>
+
+  <h1>Part Two:</h1>
+  <p><%= @part_two %></p>
 </section>
