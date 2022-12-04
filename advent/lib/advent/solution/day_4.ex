@@ -4,10 +4,13 @@ defmodule Advent.Solution.Day4 do
     Enum.reduce(get_problem_input, 0, fn pair, overlapping ->
       [[start1, end1],[start2, end2]] = pair
 
+      range1 = Enum.to_list(start1..end1)
+      range2 = Enum.to_list(start2..end2)
+
       cond do
-        start1 >= start2 && end1 <= end2 ->
+        Enum.empty?(range1 -- range2) ->
           overlapping = overlapping + 1
-        start2 >= start1 && end2 <= end1 ->
+        Enum.empty?(range2 -- range1) ->
           overlapping = overlapping + 1
         true ->
           overlapping
