@@ -4,32 +4,39 @@ defmodule Advent.Solution.Day5 do
   def part_one do
     {stacks, moves} = get_problem_input
 
-    move_stacks(moves, stacks)
+    move_stacks(moves, stacks, false)
     |> Enum.map(fn stack -> List.first(stack) end)
     |> Enum.join("")
   end
 
-  defp move_stacks([current_move | future_moves], stacks) do
-    %{from: from, move: count, to: to} = current_move
-    from_stack = Enum.at(stacks, from - 1)
-    to_stack = Enum.at(stacks, to - 1)
+  defp move_stacks([%{from: from, move: count, to: to} | future_moves], stacks, is_9001 \\ false) do
+    { moving_items, new_from_stack } = stacks |> Enum.at(from - 1) |> Enum.split(count)
 
-    { moving_items, new_from_stack } = Enum.split(from_stack, count)
-    new_to_stack = Enum.reverse(moving_items) ++ to_stack
+    new_to_stack = ordered_items(moving_items, is_9001) ++ Enum.at(stacks, to - 1)
 
-    updated_stacks = stacks |> List.replace_at(to - 1, new_to_stack) |> List.replace_at(from - 1, new_from_stack)
+    updated_stacks = stacks
+    |> List.replace_at(to - 1, new_to_stack)
+    |> List.replace_at(from - 1, new_from_stack)
 
-    move_stacks(future_moves, updated_stacks)
+    move_stacks(future_moves, updated_stacks, is_9001)
   end
 
-  defp move_stacks([], stacks) do # recursion end state
+  defp move_stacks([], stacks, is_9001) do # recursion end state
     stacks
+  end
+
+  defp ordered_items(items, do_reverse) do
+    if do_reverse, do: Enum.reverse(items), else: items
   end
 
   ###
 
   def part_two do
+    {stacks, moves} = get_problem_input
 
+    move_stacks(moves, stacks, true)
+    |> Enum.map(fn stack -> List.first(stack) end)
+    |> Enum.join("")
   end
 
   ###
