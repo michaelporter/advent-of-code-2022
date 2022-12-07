@@ -1,4 +1,5 @@
-FROM elixir:latest
+# FROM elixir:latest
+FROM elixir-base
 
 # CMD echo "Test - we're in!"
 WORKDIR /elixir-app
