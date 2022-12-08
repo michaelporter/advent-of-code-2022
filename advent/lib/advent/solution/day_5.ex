@@ -5,11 +5,12 @@ defmodule Advent.Solution.Day5 do
     {stacks, moves} = get_problem_input
 
     move_stacks(moves, stacks, false)
-    |> Enum.map(fn stack -> List.first(stack) end)
+    |> Enum.map(&(List.first(&1)))
     |> Enum.join("")
   end
 
-  defp move_stacks([%{from: from, move: count, to: to} | future_moves], stacks, is_9001 \\ false) do
+  defp move_stacks([move | future_moves], stacks, is_9001) do
+    %{from: from, count: count, to: to} = move
     { moving_items, new_from_stack } = stacks |> Enum.at(from - 1) |> Enum.split(count)
 
     new_to_stack = ordered_items(moving_items, is_9001) ++ Enum.at(stacks, to - 1)
@@ -56,6 +57,7 @@ defmodule Advent.Solution.Day5 do
     |> Enum.map(fn ci ->
       Enum.into(ci, %{}, fn cii ->
         [k, v] = cii
+        k = if k == "move", do: "count", else: k
         {String.to_atom(k), String.to_integer(v)}
       end)
     end)
@@ -77,7 +79,12 @@ defmodule Advent.Solution.Day5 do
       # ["M", "V", "N", "B", "R", "S", "G", "L"]
     # ]
 
-    String.split(stacks, "\n") |> Enum.map(fn stack -> String.split(stack, "") end) |> Enum.zip |> Enum.map(fn tup -> Tuple.to_list(tup) end) |> Enum.map(fn l -> Enum.filter(l, fn li -> Regex.match?(~r/[[:alpha:]]/, li) end) end) |> Enum.filter(fn l -> !Enum.empty?(l) end)
+    stacks |> String.split("\n")
+    |> Enum.map(&(String.split(&1, "")))
+    |> Enum.zip
+    |> Enum.map(&(Tuple.to_list(&1)))
+    |> Enum.map(fn l -> Enum.filter(l, &(Regex.match?(~r/[[:alpha:]]/, &1))) end)
+    |> Enum.filter(&(!Enum.empty?(&1)))
   end
 
   defp parse_response_body(body) do
