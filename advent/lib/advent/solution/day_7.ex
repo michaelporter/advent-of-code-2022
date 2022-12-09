@@ -23,8 +23,21 @@ defmodule Advent.Solution.Day7 do
       sum + dir_size #Enum.reduce(dir_sizes[dir], 0, &(&1 + &2))
     end)
 
-
     sum_of_small_dirs
+  end
+
+  def part_two do
+    size_to_free_up = 2080344
+
+    { sys, dir_sizes } = get_problem_input |> build_file_system(["/"], %{"/" => %{}}, %{"/" => []})
+
+    result = dir_sizes |> get_dir_sizes_below(1000000000) # lol, no refactoring tonight
+    |> Enum.filter(fn dir ->
+      dir_size = Enum.reduce(dir_sizes[dir], 0, &(&1 + &2))
+      dir_size >= size_to_free_up
+    end)
+    |> Enum.map(fn dir -> Enum.reduce(dir_sizes[dir], 0, &(&1 + &2)) end)
+    |> Enum.sort |> List.first
 
   end
 
@@ -231,11 +244,6 @@ defmodule Advent.Solution.Day7 do
 
 
 
-  ###
-
-  def part_two do
-    get_problem_input
-  end
 
   ###
 
