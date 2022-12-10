@@ -1,21 +1,7 @@
 defmodule Advent.Solution.Day8 do
 
-  # find how many trees are visible from the edge
-  # when looking in from a row or column end
-
-  # trees are represented by a number that reflects its height
-  # - 0 is shortest, 9 is tallest (10 sizes)
-
-  # a tree is visible if the trees between it and the edge of
-  # the viewer are shorter than it is
-
-  # 0 1 2 == all three are visible
-  # 1 0 3 == 1 and 3 are visible (so 2)
-
-  # every tree along the edge is visible
-
   def part_one do
-    { rows, cols } = get_problem_input
+    rows = get_problem_input
 
     Enum.reduce(Enum.with_index(rows), 0, fn {row, row_index}, all_visible_trees ->
       visible_trees_in_row = Enum.reduce(Enum.with_index(row), 0, fn {tree, tree_index}, visible_trees ->
@@ -26,6 +12,7 @@ defmodule Advent.Solution.Day8 do
 
 
         cond do
+          # this can probably be simplified by getting lengths of the sightlines; a 0 length will be an edge?
           row_index == 0 || tree_index == 0 || row_index == length(rows) - 1 || tree_index == length(row) - 1 ->
             visible_trees + 1
           true ->
@@ -45,22 +32,44 @@ defmodule Advent.Solution.Day8 do
 
       all_visible_trees + visible_trees_in_row
     end)
-
-    # return:
-    # number_of_visible_trees
   end
 
   ###
 
   def part_two do
+    rows = get_problem_input
 
+    Enum.map(Enum.with_index(rows), fn {row, row_index} ->
+      Enum.map(Enum.with_index(row), fn {tree, tree_index} ->
+        left = Enum.take(row, tree_index)
+        right = Enum.take(row, tree_index + 1 - length(row))
+        top = Enum.take(rows, row_index) |> Enum.map(fn row -> Enum.at(row, tree_index) end)
+        bottom = Enum.take(rows, row_index + 1 - length(rows)) |> Enum.map(fn row -> Enum.at(row, tree_index) end)
+
+        Enum.reduce([Enum.reverse(left), right, Enum.reverse(top), bottom], 1, fn dir, dir_scenic_score ->
+          viewable_trees = Enum.take_while(dir, fn t -> t < tree end)
+
+          lingering_visible = List.first(Enum.take(dir, length(viewable_trees) - length(dir)))
+
+          if is_integer(lingering_visible) && lingering_visible >= tree do
+            # when not an edge, count the tree that broke the sightline
+            (length(viewable_trees) + 1) * dir_scenic_score
+          else
+            # captures the 0 from the edges
+            length(viewable_trees) * dir_scenic_score
+          end
+        end)
+      end)
+    end)
+    |> List.flatten
+    |> Enum.max
 
   end
 
   ###
 
   defp parse_response_body(body) do
-    rows = body
+    body
     |> String.trim_trailing
     |> String.split("\n", trim: true)
     |> Enum.map(fn s ->
@@ -69,13 +78,6 @@ defmodule Advent.Solution.Day8 do
         String.to_integer(n)
       end)
     end)
-
-    cols = rows
-    |> List.zip
-    |> Enum.map(&Tuple.to_list/1)
-
-
-    {rows, cols}
   end
 
   defp get_problem_input do
