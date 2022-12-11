@@ -26,11 +26,11 @@ defmodule Advent.Solution.Day9 do
     # then can use a copy of the grid to represent where T has been
 
     # width - height: 353 - 232
-    #%{starting_pos: starting_pos, grid: grid } = #build_grid(moves)
-    %{starting_pos: starting_pos, grid: grid } = %{
-      starting_pos: {18, 18},
-      grid: Enum.into(0..300, [], fn (_) -> Enum.reduce(0..400, [], fn _, rr -> rr ++ [0] end) end)
-    }
+    %{starting_pos: starting_pos, grid: grid } = build_grid(moves)
+    # %{starting_pos: starting_pos, grid: grid } = %{
+    #   starting_pos: {18, 18},
+    #   grid: Enum.into(0..300, [], fn (_) -> Enum.reduce(0..400, [], fn _, rr -> rr ++ [0] end) end)
+    # }
 
     IO.puts "Starting Pos: #{inspect starting_pos}"
 
