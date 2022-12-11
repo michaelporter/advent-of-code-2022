@@ -60,6 +60,7 @@ defmodule Advent.Solution.Day9 do
 
     positions_during_move = %{head: [{head_x, head_y}], tail: [{tail_x, tail_y}]} # this probably gets redundant
 
+    move_count = move_count - 1
     all_positions_hit_during_move = Enum.reduce(0..move_count, positions_during_move, fn step, pdm ->
       IO.puts "---"
       # IO.puts inspect step
