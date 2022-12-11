@@ -28,8 +28,8 @@ defmodule Advent.Solution.Day9 do
     # width - height: 353 - 232
     #%{starting_pos: starting_pos, grid: grid } = #build_grid(moves)
     %{starting_pos: starting_pos, grid: grid } = %{
-      starting_pos: {18, 14},
-      grid: Enum.into(0..600, [], fn (_) -> Enum.reduce(0..600, [], fn _, rr -> rr ++ [0] end) end)
+      starting_pos: {18, 18},
+      grid: Enum.into(0..300, [], fn (_) -> Enum.reduce(0..400, [], fn _, rr -> rr ++ [0] end) end)
     }
 
     IO.puts "Starting Pos: #{inspect starting_pos}"
@@ -39,12 +39,13 @@ defmodule Advent.Solution.Day9 do
 
     # Enum.each(grid, fn row -> IO.puts(inspect(row)) end)
 
-    List.flatten(grid)
+    count = List.flatten(grid)
     |> Enum.filter(fn pos -> pos == "X" end)
     |> length
 
     # "test"
 
+    { grid, count }
   end
 
   # defp traverse_grid(moves, grid, current_pos \\ %{head: {0,0}, tail: {0,0}})
@@ -61,9 +62,9 @@ defmodule Advent.Solution.Day9 do
 
     all_positions_hit_during_move = Enum.reduce(0..move_count, positions_during_move, fn step, pdm ->
       IO.puts "---"
-      IO.puts inspect step
-      IO.puts inspect pdm
-      IO.puts inspect pdm[:head]
+      # IO.puts inspect step
+      # IO.puts inspect pdm
+      # IO.puts inspect pdm[:head]
 
       latest_head = List.first(pdm[:head])
       latest_tail = List.first(pdm[:tail])
@@ -105,7 +106,7 @@ defmodule Advent.Solution.Day9 do
     %{ head: head_positions_hit, tail: tail_positions_hit } = all_positions_hit_during_move
     rev_head_pos = Enum.reverse(head_positions_hit)
 
-    grid = Enum.reduce(Enum.with_index(Enum.reverse(tail_positions_hit)), grid, fn (pos_p, g) ->
+    grid = Enum.reduce(Enum.with_index(Enum.reverse(Enum.uniq(tail_positions_hit))), grid, fn (pos_p, g) ->
       {pos, pos_index} = pos_p
 
       head_pos = Enum.at(rev_head_pos, pos_index)
@@ -124,7 +125,7 @@ defmodule Advent.Solution.Day9 do
       row = Enum.at(g, tail_y)
 
       # row =
-      IO.puts "attempting update: at #{tail_x} - #{inspect row}"
+      IO.puts "attempting update: at #{tail_x}, #{tail_y} - #{inspect row}"
       row = List.update_at(row, tail_x, fn val -> "X" end)
       g = List.update_at(g, tail_y, fn val -> row end)
 
@@ -158,7 +159,7 @@ defmodule Advent.Solution.Day9 do
     { new_head_x, new_head_y } = new_head_pos
 
     IO.puts "latest tail: #{inspect latest_tail_pos}"
-    IO.puts "latest head: #{inspect new_head_pos}"
+    IO.puts "new head: #{inspect new_head_pos}"
 
     differences = Enum.zip_reduce(
       Tuple.to_list(latest_tail_pos),
@@ -199,8 +200,6 @@ defmodule Advent.Solution.Day9 do
             [t | acc]
           else
             pos_change = if d > 0, do: 1, else: -1
-            IO.puts "diff: #{inspect differences}"
-            IO.puts "pos change: #{inspect pos_change}"
             [t + pos_change | acc]
           end
         end)
