@@ -103,17 +103,32 @@ defmodule Advent.Solution.Day9 do
     end)
 
     %{ head: head_positions_hit, tail: tail_positions_hit } = all_positions_hit_during_move
+    rev_head_pos = Enum.reverse(head_positions_hit)
 
-    grid = Enum.reduce(tail_positions_hit, grid, fn (pos, grid) ->
+    grid = Enum.reduce(Enum.with_index(Enum.reverse(tail_positions_hit)), grid, fn (pos_p, g) ->
+      {pos, pos_index} = pos_p
+
+      head_pos = Enum.at(rev_head_pos, pos_index)
+
+      # IO.puts "\n\n"
+      # IO.puts "Direction: #{inspect direction} #{inspect move_count}"
+      # IO.puts "Starting POS: #{inspect current_pos} "
+      # IO.puts "Current Step POS HEAD: #{inspect head_pos }"
+      # IO.puts "Current Step POS TAIL: #{inspect pos }"
+      # IO.puts "\n\n"
+
+      # IO.gets "press any key when ready"
+
+
       {tail_x, tail_y} = pos
-      row = Enum.at(grid, tail_y)
+      row = Enum.at(g, tail_y)
 
       # row =
       IO.puts "attempting update: at #{tail_x} - #{inspect row}"
       row = List.update_at(row, tail_x, fn val -> "X" end)
-      grid = List.update_at(grid, tail_y, fn val -> row end)
+      g = List.update_at(g, tail_y, fn val -> row end)
 
-      grid
+      g
     end)
 
     updated_pos = %{
@@ -121,154 +136,155 @@ defmodule Advent.Solution.Day9 do
       tail: List.first(tail_positions_hit)
     }
 
+
+
     # grid
     traverse_grid(moves, grid, updated_pos)
   end
 
-    defp get_new_tail(latest_tail_pos, new_head_pos) do
-      # adjacent_pos = [
-      #   { latest_tail_x, latest_tail_y + 1 } # N
-      #   { latest_tail_x + 1, latest_tail_y + 1 } # NE
-      #   { latest_tail_x + 1, latest_tail_y }# E
-      #   { latest_tail_x + 1, latest_tail_y - 1 }# SE
-      #   { latest_tail_x, latest_tail_y - 1 } # S
-      #   { latest_tail_x - 1, latest_tail_y - 1 } # SW
-      #   { latest_tail_x - 1, latest_tail_y } # W
-      #   { latest_tail_x - 1, latest_tail_y + 1 # NW
-      # ]
+  defp get_new_tail(latest_tail_pos, new_head_pos) do
+    # adjacent_pos = [
+    #   { latest_tail_x, latest_tail_y + 1 } # N
+    #   { latest_tail_x + 1, latest_tail_y + 1 } # NE
+    #   { latest_tail_x + 1, latest_tail_y }# E
+    #   { latest_tail_x + 1, latest_tail_y - 1 }# SE
+    #   { latest_tail_x, latest_tail_y - 1 } # S
+    #   { latest_tail_x - 1, latest_tail_y - 1 } # SW
+    #   { latest_tail_x - 1, latest_tail_y } # W
+    #   { latest_tail_x - 1, latest_tail_y + 1 # NW
+    # ]
 
-      { latest_tail_x, latest_tail_y } = latest_tail_pos
-      { new_head_x, new_head_y } = new_head_pos
+    { latest_tail_x, latest_tail_y } = latest_tail_pos
+    { new_head_x, new_head_y } = new_head_pos
 
-      IO.puts "latest tail: #{inspect latest_tail_pos}"
-      IO.puts "latest head: #{inspect new_head_pos}"
+    IO.puts "latest tail: #{inspect latest_tail_pos}"
+    IO.puts "latest head: #{inspect new_head_pos}"
 
-      differences = Enum.zip_reduce(
-        Tuple.to_list(latest_tail_pos),
-        Tuple.to_list(new_head_pos),
-        [],
-        fn t, h, acc ->
-          [h - t | acc]
-      end) |> Enum.reverse
-      differences_abs = Enum.map(differences, fn d -> abs(d) end)
+    differences = Enum.zip_reduce(
+      Tuple.to_list(latest_tail_pos),
+      Tuple.to_list(new_head_pos),
+      [],
+      fn t, h, acc ->
+        [h - t | acc]
+    end) |> Enum.reverse
+    differences_abs = Enum.map(differences, fn d -> abs(d) end)
 
-      cond do
-        [0, 0] == differences_abs ->
-          # do nothing, same pos
-          # return the same T pos value, I guess
-          latest_tail_pos
-        Enum.member?([[0, 1], [1, 0], [1, 1]], differences_abs) ->
-          # do nothing, this is adjancecy
-          # return the same T pos value, I guess
-          latest_tail_pos
-        Enum.member?([[2, 1], [1, 2]], differences_abs) ->
-          # this is the diagonal case
-          # change both coords by 1, using the unary that reflects the relationship with H coords
-          # return the updated tail
+    cond do
+      [0, 0] == differences_abs ->
+        # do nothing, same pos
+        # return the same T pos value, I guess
+        latest_tail_pos
+      Enum.member?([[0, 1], [1, 0], [1, 1]], differences_abs) ->
+        # do nothing, this is adjancecy
+        # return the same T pos value, I guess
+        latest_tail_pos
+      Enum.member?([[2, 1], [1, 2], [2, 2]], differences_abs) ->
+        # this is the diagonal case
+        # change both coords by 1, using the unary that reflects the relationship with H coords
+        # return the updated tail
 
-          Enum.zip_reduce(Tuple.to_list(latest_tail_pos), differences, [], fn t, d, acc ->
+        Enum.zip_reduce(Tuple.to_list(latest_tail_pos), differences, [], fn t, d, acc ->
+          pos_change = if d > 0, do: 1, else: -1
+          [t + pos_change | acc]
+        end)
+        |> Enum.reverse
+        |> List.to_tuple
+
+      Enum.member?([[0, 2], [2, 0]], differences_abs) ->
+        # this is the linear gap distance, add or subtract 1 to the coord that is off by 2
+        # return the updated tail value
+
+        Enum.zip_reduce(Tuple.to_list(latest_tail_pos), differences, [], fn t, d, acc ->
+          if d == 0 do
+            [t | acc]
+          else
             pos_change = if d > 0, do: 1, else: -1
+            IO.puts "diff: #{inspect differences}"
+            IO.puts "pos change: #{inspect pos_change}"
             [t + pos_change | acc]
-          end)
-          |> Enum.reverse
-          |> List.to_tuple
+          end
+        end)
+        |> Enum.reverse
+        |> List.to_tuple
+      true ->
+        IO.puts "nothing matched: #{inspect differences_abs}"
+        IO.puts "tail pos: #{inspect Tuple.to_list(latest_tail_pos)}"
+        IO.puts "head pos: #{inspect Tuple.to_list(new_head_pos)}"
+    end
+    # get the diff between the H pos and the T pos, then:
 
-        Enum.member?([[0, 2], [2, 0]], differences_abs) ->
-          # this is the linear gap distance, add or subtract 1 to the coord that is off by 2
-          # return the updated tail value
+    # for 0 distance
+      # abs value of (0, 0)
+    # do nothing
 
-          Enum.zip_reduce(Tuple.to_list(latest_tail_pos), differences, [], fn t, d, acc ->
-            if d == 0 do
-              [t | acc]
-            else
-              pos_change = if d > 0, do: 1, else: -1
-              IO.puts "diff: #{inspect differences}"
-              IO.puts "pos change: #{inspect pos_change}"
-              [t + pos_change | acc]
-            end
-          end)
-          |> Enum.reverse
-          |> List.to_tuple
-        true ->
-          IO.puts "nothing matched: #{inspect differences_abs}"
-          IO.puts "tail pos: #{inspect Tuple.to_list(latest_tail_pos)}"
-          IO.puts "head pos: #{inspect Tuple.to_list(new_head_pos)}"
-      end
-      # get the diff between the H pos and the T pos, then:
+    # for distance of 1 for either or both, this is ADJACENCY
+    #  - abs values of (0, 1), (1, 0), (1, 1)
+    # do nothing
 
-      # for 0 distance
-        # abs value of (0, 0)
-      # do nothing
+    # for distance of 2 in either x or y,
+    # if neither x nor y is shared, then do the diagonal case (one with be 2, the other will be 1 off)
+        # abs values of (2, 1), (1, 2)  // (2, 1), (-2, 1), (-2, -1), (1, 2), (-1, 2), (-1, -2)
+        # for the diagonal case,
+        # maybe what I need to do is grab the NEWS adjacent squares of the H pos
+        # and then see which one can be reached by changing both values of T pos
+        # or rather, where T pos differs from the adjacent pos by 1 for both x and y
+        #
+        # or maybe, I think I can do a simple change of 1 for both x and y, using the unary sign
+        # of the difference between T and H. So a distance of -2, 1 says I change T x by -1 and y by +1
 
-      # for distance of 1 for either or both, this is ADJACENCY
-      #  - abs values of (0, 1), (1, 0), (1, 1)
-      # do nothing
-
-      # for distance of 2 in either x or y,
-      # if neither x nor y is shared, then do the diagonal case (one with be 2, the other will be 1 off)
-          # abs values of (2, 1), (1, 2)  // (2, 1), (-2, 1), (-2, -1), (1, 2), (-1, 2), (-1, -2)
-          # for the diagonal case,
-          # maybe what I need to do is grab the NEWS adjacent squares of the H pos
-          # and then see which one can be reached by changing both values of T pos
-          # or rather, where T pos differs from the adjacent pos by 1 for both x and y
-          #
-          # or maybe, I think I can do a simple change of 1 for both x and y, using the unary sign
-          # of the difference between T and H. So a distance of -2, 1 says I change T x by -1 and y by +1
-
-      # if one of x or y is shared, increment that one by 1
-        # abs values of (0, 2), (2, 0)
+    # if one of x or y is shared, increment that one by 1
+      # abs values of (0, 2), (2, 0)
 
 
 
-      # same_pos = [
-      #   {latest_tail_x, latest_tail_y} # don't forget to handle this case
-      # ]
+    # same_pos = [
+    #   {latest_tail_x, latest_tail_y} # don't forget to handle this case
+    # ]
 
-      # diagonally_separate = latest_tail_x != new_head_x && latest_tail_y != new_head_y
+    # diagonally_separate = latest_tail_x != new_head_x && latest_tail_y != new_head_y
 
-      #
-      # for the case where H has moved along NEWS to be 2 away from T
-      #
-      # x_axis_separated = abs(new_head_x - latest_tail_x) == 2
-      # y_axis_separated = abs(new_head_x - latest_tail_x) == 2
+    #
+    # for the case where H has moved along NEWS to be 2 away from T
+    #
+    # x_axis_separated = abs(new_head_x - latest_tail_x) == 2
+    # y_axis_separated = abs(new_head_x - latest_tail_x) == 2
 
-      # new_tail_x = if x_axis_separated, do: latest_tail_x + (new_head_x - latest_tail_x) / 2, else: latest_tail_x
-      # new_tail_y = if y_axis_separated, do: latest_tail_y + (new_head_y - latest_tail_y) / 2, else: latest_tail_y
-      #
+    # new_tail_x = if x_axis_separated, do: latest_tail_x + (new_head_x - latest_tail_x) / 2, else: latest_tail_x
+    # new_tail_y = if y_axis_separated, do: latest_tail_y + (new_head_y - latest_tail_y) / 2, else: latest_tail_y
+    #
 
-      # when H shares neither X nor Y, T must move diagonally. That is, must
-      # move so that it is straight U, D, R, L. Not a diagonal positiioning
+    # when H shares neither X nor Y, T must move diagonally. That is, must
+    # move so that it is straight U, D, R, L. Not a diagonal positiioning
 
-      # detatched_pos = [
-      #   { latest_tail_x - 1, latest_tail_y + 2 } # NNW -> x - 1, y + 1
-      #   { latest_tail_x, latest_tail_y + 2 } # NN -> x + 0, y + 1
-      #   { latest_tail_x + 1, latest_tail_y + 2 } # NNE -> x + 1, y + 1
+    # detatched_pos = [
+    #   { latest_tail_x - 1, latest_tail_y + 2 } # NNW -> x - 1, y + 1
+    #   { latest_tail_x, latest_tail_y + 2 } # NN -> x + 0, y + 1
+    #   { latest_tail_x + 1, latest_tail_y + 2 } # NNE -> x + 1, y + 1
 
-      #   { latest_tail_x + 2, latest_tail_y + 1} # ENE -> x + 1, y + 1
-      #   { latest_tail_x + 2, latest_tail_y } # E -> x + 1, y + 0
-      #   { latest_tail_x + 2, latest_tail_y - 1 }# ESE -> x + 1, y - 1
+    #   { latest_tail_x + 2, latest_tail_y + 1} # ENE -> x + 1, y + 1
+    #   { latest_tail_x + 2, latest_tail_y } # E -> x + 1, y + 0
+    #   { latest_tail_x + 2, latest_tail_y - 1 }# ESE -> x + 1, y - 1
 
-      #   { latest_tail_x + 1, latest_tail_y - 2 } # SSE -> x + 1, y - 1
-      #   { latest_tail_x, latest_tail_y - 2 } # S -> x + 0,  y - 1
-      #   { latest_tail_x - 1, latest_tail_y - 2 } # SSW -> x - 1, y - 1
+    #   { latest_tail_x + 1, latest_tail_y - 2 } # SSE -> x + 1, y - 1
+    #   { latest_tail_x, latest_tail_y - 2 } # S -> x + 0,  y - 1
+    #   { latest_tail_x - 1, latest_tail_y - 2 } # SSW -> x - 1, y - 1
 
-      #   { latest_tail_x - 2, latest_tail_y - 1} # WSW -> x - 1, y - 1
-      #   { latest_tail_x - 2, latest_tail_y } # WW -> x - 1, y + 0
-      #   { latest_tail_x - 2, latest_tail_y + 1 # WNW -> x - 1, y + 1
-      # ]
+    #   { latest_tail_x - 2, latest_tail_y - 1} # WSW -> x - 1, y - 1
+    #   { latest_tail_x - 2, latest_tail_y } # WW -> x - 1, y + 0
+    #   { latest_tail_x - 2, latest_tail_y + 1 # WNW -> x - 1, y + 1
+    # ]
 
-      # is_adjacent = Enum.contains?(adjacent_pos, {new_head_x, new_head_y})
+    # is_adjacent = Enum.contains?(adjacent_pos, {new_head_x, new_head_y})
 
-      # if is_adjacent do
-      #   { latest_tail_x, latest_tail_y } # no change in position
-      # else
-        # make a move closer
+    # if is_adjacent do
+    #   { latest_tail_x, latest_tail_y } # no change in position
+    # else
+      # make a move closer
 
 
 
-      #end
+    #end
 
-    # end
 
     # update the grid with "X" for all tail positions
 
