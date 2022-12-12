@@ -83,25 +83,8 @@ defmodule Advent.Solution.Day9 do
       fn t, h, acc ->
         [h - t | acc]
     end) |> Enum.reverse
-    differences_abs = Enum.map(differences, fn d -> abs(d) end)
 
-    cond do
-      [0, 0] == differences_abs ->
-        current_tail_pos
-      Enum.member?([[0, 1], [1, 0], [1, 1]], differences_abs) ->
-        current_tail_pos
-      true -> # handle all distances
-        Enum.zip_reduce(Tuple.to_list(current_tail_pos), differences, [], fn t, d, acc ->
-          if d == 0 do
-            [t | acc]
-          else
-            pos_change = if d > 0, do: 1, else: -1
-            [t + pos_change | acc]
-          end
-        end)
-        |> Enum.reverse
-        |> List.to_tuple
-    end
+    calc_tail(differences, current_tail_pos)
   end
 
   ###
@@ -134,10 +117,6 @@ defmodule Advent.Solution.Day9 do
     [ current_knot_pos | _ ] = current_knot
     [ leader_path | _ ] = collected_paths # the most recent path
 
-    # working here
-    # probably need to do a Reduce like in the head_path one, but for the leader
-    # knot's path history instead of moves. Then it's just the difference adjustment
-
     current_knot_path = Enum.reduce(leader_path, [current_knot_pos], fn leader_step, knot_moves ->
       [latest_knot_pos | _ ] = knot_moves
 
@@ -168,12 +147,6 @@ defmodule Advent.Solution.Day9 do
   end
 
   defp head_travel([{direction, move_count} | remaining_moves], current_pos, head_moves) do
-    # %{head: head_pos, tail: tail_pos} = current_pos
-    # [ current_pos | _ ] = head_moves
-
-    # positions_during_move = %{head: [head_pos], tail: tail_pos}
-    # IO.puts "POS At start of Move: #{inspect positions_during_move}"
-
     positions_during_move = [current_pos]
 
     all_positions_hit_during_move = Enum.reduce(1..move_count, positions_during_move, fn step, pdm ->
@@ -222,6 +195,7 @@ defmodule Advent.Solution.Day9 do
         |> Enum.reverse
         |> List.to_tuple
     end
+
   end
 
   ###
