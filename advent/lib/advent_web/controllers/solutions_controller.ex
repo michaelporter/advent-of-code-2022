@@ -6,13 +6,14 @@ defmodule AdventWeb.SolutionsController do
   def day(conn, params) do
     day_num = params["day"]
 
-    { grid, count } = current_day(day_num).part_one
+    # { grid, count } = current_day(day_num).part_one
+    { grid, count } = current_day(day_num).part_two
 
     conn
     |> Plug.Conn.assign(:day, day_num)
     |> Plug.Conn.assign(:grid, grid)
-    |> Plug.Conn.assign(:count, count)
-    |> Plug.Conn.assign(:part_two, current_day(day_num).part_two)
+      |> Plug.Conn.assign(:count, count)
+    |> Plug.Conn.assign(:part_two, "hey") #current_day(day_num).part_two)
     |> render("index.html")
   end
 
