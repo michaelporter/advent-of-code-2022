@@ -14,21 +14,7 @@
 
 <section class="">
   <h1>Part One:</h1>
-  <%= @count %>
-  <p class="hey">
-    <%= for row <- @grid do %>
-      <p>
-      <%= for cell <- row do %>
-        <%= if cell == "X" do %>
-          <span style="color:red; font-weight:bold;">X</span>
-        <%= else %>
-          <span style="color:black; font-weight:bold;">X</span>
-        <%= end %>
-      <%= end %>
-      </p>
-    <%= end %>
-
-  </p>
+  <p><%= @part_one %></p>
 
   <h1>Part Two:</h1>
   <p><%= @part_two %></p>

@@ -5,6 +5,7 @@ defmodule Advent.Solution.Day9 do
 
     %{starting_pos: starting_pos, grid: grid } = build_grid(moves)
 
+    # can probably use the same function as part 2 -- get one that
     grid = traverse_grid(moves, grid, %{head: starting_pos, tail: starting_pos})
 
     count = List.flatten(grid)
@@ -18,6 +19,7 @@ defmodule Advent.Solution.Day9 do
     grid
   end
 
+  # can probably use the same function as part 2 -- get one that
   defp traverse_grid([{direction, move_count} | moves], grid, current_pos) do
     %{head: head_pos, tail: tail_pos} = current_pos
 
@@ -68,9 +70,6 @@ defmodule Advent.Solution.Day9 do
 
       {tail_x, tail_y} = pos
       row = Enum.at(g, tail_y)
-
-      # IO.puts "attempting update at #{tail_x}, #{tail_y}"
-
       row = List.update_at(row, tail_x, fn val -> "X" end)
       List.update_at(g, tail_y, fn val -> row end)
     end)
@@ -113,7 +112,6 @@ defmodule Advent.Solution.Day9 do
     %{starting_pos: starting_pos, grid: grid } = build_grid(moves)
     tail_pos = Enum.into(0..8, [], fn _ -> [starting_pos] end)
 
-    # grid = traverse_grid_many_tails(moves, grid, %{head: starting_pos, tail: tail_pos})
     head_path = head_travel(moves, starting_pos)
     final_tail_path = get_new_tail_2(tail_pos, [Enum.reverse(head_path)])
 
@@ -124,30 +122,14 @@ defmodule Advent.Solution.Day9 do
     |> length
 
     { grid, count }
-
-    # count
-    # { [], 0 }
   end
 
   defp get_new_tail_2(tails, collected_paths)
 
-  defp get_new_tail_2([], collected_paths) do
-    # final_tail_pos
-    # Enum.reverse(collected_tail_pos)
-    [ final_tail | _ ] = collected_paths
-    # return the final tail path List
-
-    # Enum.each(final_tail, fn coord -> IO.puts("Final Path: #{inspect(coord)}") end)
-
+  defp get_new_tail_2([], [ final_tail | _ ]) do
     final_tail
   end
 
-  # defp get_new_tail_2([final_tail_pos_history], leader_pos, collected_tail_pos) do
-  #   IO.puts inspect final_tail_pos_history
-  #   IO.puts "I'M IN THE LAST TAIL"
-  # end
-
-  # leader is Head, or the most recent Tail knot before this one
   defp get_new_tail_2([current_knot | remaining_knots], collected_paths) do
     [ current_knot_pos | _ ] = current_knot
     [ leader_path | _ ] = collected_paths # the most recent path
@@ -178,29 +160,6 @@ defmodule Advent.Solution.Day9 do
 
     get_new_tail_2(remaining_knots, [Enum.reverse(current_knot_path) | collected_paths])
   end
-
-  defp calc_tail(differences, current_tail_pos) do
-    differences_abs = Enum.map(differences, fn d -> abs(d) end)
-
-    cond do
-      [0, 0] == differences_abs ->
-        current_tail_pos
-      Enum.member?([[0, 1], [1, 0], [1, 1]], differences_abs) ->
-        current_tail_pos
-      true -> # handle all distances
-        Enum.zip_reduce(Tuple.to_list(current_tail_pos), differences, [], fn t, d, acc ->
-          if d == 0 do
-            [t | acc]
-          else
-            pos_change = if d > 0, do: 1, else: -1
-            [t + pos_change | acc]
-          end
-        end)
-        |> Enum.reverse
-        |> List.to_tuple
-    end
-  end
-
 
   defp head_travel(direction, current_pos, head_moves \\ [])
 
@@ -240,68 +199,30 @@ defmodule Advent.Solution.Day9 do
 
     [final_pos | _] = all_positions_hit_during_move
 
-    IO.puts "All head moves for #{direction} #{move_count}, Starting: #{inspect current_pos}, Ending: #{inspect final_pos} "
-
-    # List.flatten [all_positions_hit_during_move | head_moves]
-
     head_travel(remaining_moves, final_pos, List.flatten([all_positions_hit_during_move | head_moves]))
   end
 
-  defp traverse_grid_many_tails([], grid, current_pos) do
-    grid
+  defp calc_tail(differences, current_tail_pos) do
+    differences_abs = Enum.map(differences, fn d -> abs(d) end)
+
+    cond do
+      [0, 0] == differences_abs ->
+        current_tail_pos
+      Enum.member?([[0, 1], [1, 0], [1, 1]], differences_abs) ->
+        current_tail_pos
+      true -> # handle all distances
+        Enum.zip_reduce(Tuple.to_list(current_tail_pos), differences, [], fn t, d, acc ->
+          if d == 0 do
+            [t | acc]
+          else
+            pos_change = if d > 0, do: 1, else: -1
+            [t + pos_change | acc]
+          end
+        end)
+        |> Enum.reverse
+        |> List.to_tuple
+    end
   end
-
-  defp traverse_grid_many_tails([{direction, move_count} | moves], grid, current_pos) do
-    %{head: head_pos, tail: tail_pos} = current_pos
-
-    positions_during_move = %{head: [head_pos], tail: tail_pos}
-    IO.puts "POS At start of Move: #{inspect positions_during_move}"
-
-    all_positions_hit_during_move = Enum.reduce(1..move_count, positions_during_move, fn step, pdm ->
-      %{
-        head: [ {latest_head_x, latest_head_y} | _ ],
-        tail: all_tail_pos # [ latest_tail | _ ]
-      } = pdm
-
-      case direction do
-        :R ->
-          new_head = { latest_head_x + 1, latest_head_y }
-          all_new_tails = get_new_tail_2(all_tail_pos, [new_head])
-          IO.puts "ALL NEW TAILS"
-          IO.puts inspect all_new_tails
-
-          # only need to keep the history of the last one really; keep the latest for the other 8 tails
-
-          %{ head: [new_head | pdm[:head]], tail: Enum.zip_with(Enum.reverse(all_new_tails), pdm[:tail], fn latest, older -> List.flatten([latest | older]) end) }
-        :L ->
-          new_head = { latest_head_x - 1, latest_head_y }
-          all_new_tails = get_new_tail_2(all_tail_pos, [new_head])
-          %{ head: [new_head | pdm[:head]], tail: Enum.zip_with(Enum.reverse(all_new_tails), pdm[:tail], fn latest, older -> List.flatten([latest | older]) end) }
-        :U ->
-          new_head = { latest_head_x, latest_head_y + 1 }
-          all_new_tails = get_new_tail_2(all_tail_pos, [new_head])
-          %{ head: [new_head | pdm[:head]], tail: Enum.zip_with(Enum.reverse(all_new_tails), pdm[:tail], fn latest, older -> List.flatten([latest | older]) end) }
-        :D ->
-          new_head = { latest_head_x, latest_head_y - 1 }
-          all_new_tails = get_new_tail_2(all_tail_pos, [new_head])
-          %{ head: [new_head | pdm[:head]], tail: Enum.zip_with(Enum.reverse(all_new_tails), pdm[:tail], fn latest, older -> List.flatten([latest | older]) end) }
-        true ->
-          IO.puts "bad things have happened"
-      end
-    end)
-
-    IO.puts "what does all_positions look like now?"
-
-    %{ head: [updated_head | rest_head], tail: all_tails } = all_positions_hit_during_move
-
-    # trying to get the 9th tail so we can measure that tail's situation
-    last_tail_touched_points = List.last(all_tails)
-
-    grid = update_grid_with_touched_coords(grid, last_tail_touched_points)
-
-    traverse_grid_many_tails(moves, grid, %{head: updated_head, tail: all_tails})
-  end
-
 
   ###
 

@@ -6,15 +6,26 @@ defmodule AdventWeb.SolutionsController do
   def day(conn, params) do
     day_num = params["day"]
 
-    # { grid, count } = current_day(day_num).part_one
-    { grid, count } = current_day(day_num).part_two
+    if day_num == "9" do
 
-    conn
-    |> Plug.Conn.assign(:day, day_num)
-    |> Plug.Conn.assign(:grid, grid)
-      |> Plug.Conn.assign(:count, count)
-    |> Plug.Conn.assign(:part_two, "hey") #current_day(day_num).part_two)
-    |> render("index.html")
+      { grid_part_one, count_part_one } = current_day(day_num).part_one
+      { grid_part_two, count_part_two } = current_day(day_num).part_two
+
+      conn
+      |> Plug.Conn.assign(:day, day_num)
+      |> Plug.Conn.assign(:grid_part_one, grid_part_one)
+      |> Plug.Conn.assign(:count_part_one, count_part_one)
+      |> Plug.Conn.assign(:grid_part_two, grid_part_two)
+      |> Plug.Conn.assign(:count_part_two, count_part_two)
+      |> Plug.Conn.assign(:part_two, "hey") #current_day(day_num).part_two)
+      |> render("day_9.html")
+    else
+      conn
+      |> Plug.Conn.assign(:day, day_num)
+      |> Plug.Conn.assign(:part_one, current_day(day_num).part_one)
+      |> Plug.Conn.assign(:part_two, current_day(day_num).part_two)
+      |> render("index.html")
+    end
   end
 
   defp current_day(day_num) do
