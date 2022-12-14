@@ -89,7 +89,8 @@ header nav a {
 }
 
 section p {
-  font-size: 3px;
+  /* font-size: 3px; just for day 9 */
+  
   margin: 0;
 }
 
