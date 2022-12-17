@@ -2,17 +2,7 @@ defmodule Advent.Solution.Day10 do
 
   def part_one do
     %{ history: history } = get_problem_input()
-    |> Enum.reduce(%{last: {"noop", 0}, history: []}, fn (cmd, ticker) ->
-      {action, _} = cmd
-      %{last: {_, last_val}, history: history} = ticker
-
-      history = update_history(history, action, last_val)
-
-      %{
-        last: cmd,
-        history: history
-      }
-    end)
+    |> Enum.reduce(%{last: {"noop", 0}, history: []}, &read_clock_cycles/2)
 
     results = history |> Enum.reverse
 
@@ -21,9 +11,18 @@ defmodule Advent.Solution.Day10 do
     |> Enum.sum
   end
 
-  defp update_history(history, action, last_val) do
-    last_x = if length(history) == 0, do: 1, else: Enum.at(history, 0)
-    current_x_value = last_val + last_x
+  defp read_clock_cycles({action, current_x_change}, ticker) do
+    %{last: {_, last_x_change}, history: history} = ticker
+
+    %{
+      last: {action, current_x_change},
+      history: update_history(history, action, last_x_change)
+    }
+  end
+
+  defp update_history(history, action, x_change) do
+    base_x = if length(history) == 0, do: 1, else: Enum.at(history, 0)
+    current_x_value = x_change + base_x
 
     case action do
       "noop" ->
@@ -39,77 +38,52 @@ defmodule Advent.Solution.Day10 do
 
   ###
 
-  # the CRT draws a single pixel per cycle.
-  # the pixel's on/off state is determined by whether the cursor overlaps with it
-  # when the CRT is going over it
-  #
-  # the cursor is 3 pixels wide, and the X value determines where the center one is
-  #
-  # "#" is lit, "." is off
-  #
-  # the CRT is 40 x 6 lines
-
   def part_two do
     %{ history: history } = get_problem_input()
-    |> Enum.reduce(%{last: {"noop", 0}, history: []}, fn (cmd, ticker) ->
-      {action, _} = cmd
-      %{last: {_, last_val}, history: history} = ticker
-
-      history = update_history(history, action, last_val)
-
-      %{
-        last: cmd,
-        history: history
-      }
-    end)
-
-    results = history |> Enum.reverse
-
-    screen = Enum.into(0..5, [], fn _ -> Enum.into(0..39, [], fn _ -> "." end) end)
+    |> Enum.reduce(%{last: {"noop", 0}, history: []}, &read_clock_cycles/2)
 
     history
-    # |> Enum.take(240)
+    |> Enum.reverse
     |> Enum.with_index
-    |> Enum.reduce(screen, fn ({x_value, index}, s) ->
+    |> Enum.reduce(build_screen(), &print_screen/2)
 
-      cursor_position = x_value
-      crt_position = index
+  end
 
-      IO.puts "cursor, x val = #{x_value}"
-      cursor_row_index = get_value_row(x_value - 1)
-      cursor_col_index = x_value - 40 * cursor_row_index
-      cursor_col_index = if cursor_col_index < 0, do: 39 + cursor_col_index, else: cursor_col_index
+  defp print_screen({cursor_position, index}, screen) when cursor_position < 0 do
+    print_screen({40 + cursor_position, index}, screen)
+  end
 
-      IO.puts "#{cursor_row_index}, #{cursor_col_index}"
+  defp print_screen({cursor_position, index}, screen) do
+    crt_row_index = get_value_row(index)
+    crt_col_index = index - 40 * crt_row_index
 
-      IO.puts "screen, index: #{index}"
-      crt_row_index = get_value_row(index)
-      crt_col_index = index - 40 * crt_row_index
+    if is_overlap?(cursor_position, crt_col_index) do
+      update_screen(screen, crt_row_index, crt_col_index)
+    else
+      screen
+    end
+  end
 
-      crt_col_index = if crt_col_index < 0, do: 39 + crt_col_index, else: crt_col_index
-      IO.puts "#{crt_row_index}, #{crt_col_index}"
+  defp build_screen do
+    Enum.into(0..5, [], fn _ -> Enum.into(0..39, [], fn _ -> "." end) end)
+  end
 
-      # overlap = cursor_row_index == crt_row_index && abs(crt_col_index - cursor_row_index) < 3
+  defp is_overlap?(cursor_col_index, crt_col_index) do
+    cond do
+      Enum.member?([cursor_col_index - 1, cursor_col_index, cursor_col_index + 1], crt_col_index) ->
+        true
+      cursor_col_index == 39 && crt_col_index == 0 ->
+        true
+      true ->
+        false
+    end
+  end
 
-      # this is close, but the cursor never goes out of Row 1, which seems odd
-      overlap = abs(crt_col_index - cursor_row_index) < 3
+  defp update_screen(screen, row, col) do
+    updated_row = Enum.at(screen, row)
+    |> List.update_at(col, fn _ -> "#" end)
 
-      if overlap do
-        IO.puts "Overlap!"
-        IO.puts "Cursor: #{cursor_row_index}, #{cursor_col_index}"
-        IO.puts "CRT: #{crt_row_index}, #{crt_col_index}"
-        row_to_update = Enum.at(screen, crt_row_index)
-        IO.puts inspect row_to_update
-        updated_row = List.update_at(row_to_update, crt_col_index, fn _ -> "#" end)
-        IO.puts inspect updated_row
-        s = List.update_at(s, crt_row_index, fn _ -> updated_row end)
-        IO.puts inspect s
-        s
-      else
-        s
-      end
-    end)
-
+     List.update_at(screen, row, fn _ -> updated_row end)
   end
 
   defp get_value_row(index) do
@@ -136,153 +110,6 @@ defmodule Advent.Solution.Day10 do
   end
 
   defp get_problem_input do
-    # Advent.InputFetcher.fetch_for_day(10, &parse_response_body/1)
-    "noop
-    noop
-    noop
-    addx 6
-    addx -1
-    addx 5
-    noop
-    noop
-    noop
-    addx 5
-    addx 11
-    addx -10
-    addx 4
-    noop
-    addx 5
-    noop
-    noop
-    noop
-    addx 1
-    noop
-    addx 4
-    addx 5
-    noop
-    noop
-    noop
-    addx -35
-    addx -2
-    addx 5
-    addx 2
-    addx 3
-    addx -2
-    addx 2
-    addx 5
-    addx 2
-    addx 3
-    addx -2
-    addx 2
-    addx 5
-    addx 2
-    addx 3
-    addx -28
-    addx 28
-    addx 5
-    addx 2
-    addx -9
-    addx 10
-    addx -38
-    noop
-    addx 3
-    addx 2
-    addx 7
-    noop
-    noop
-    addx -9
-    addx 10
-    addx 4
-    addx 2
-    addx 3
-    noop
-    noop
-    addx -2
-    addx 7
-    noop
-    noop
-    noop
-    addx 3
-    addx 5
-    addx 2
-    noop
-    noop
-    noop
-    addx -35
-    noop
-    noop
-    noop
-    addx 5
-    addx 2
-    noop
-    addx 3
-    noop
-    noop
-    noop
-    addx 5
-    addx 3
-    addx -2
-    addx 2
-    addx 5
-    addx 2
-    addx -25
-    noop
-    addx 30
-    noop
-    addx 1
-    noop
-    addx 2
-    noop
-    addx 3
-    addx -38
-    noop
-    addx 7
-    addx -2
-    addx 5
-    addx 2
-    addx -8
-    addx 13
-    addx -2
-    noop
-    addx 3
-    addx 2
-    addx 5
-    addx 2
-    addx -15
-    noop
-    addx 20
-    addx 3
-    noop
-    addx 2
-    addx -4
-    addx 5
-    addx -38
-    addx 8
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    addx 2
-    addx 17
-    addx -10
-    addx 3
-    noop
-    addx 2
-    addx 1
-    addx -16
-    addx 19
-    addx 2
-    noop
-    addx 2
-    addx 5
-    addx 2
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop" |> parse_response_body
+    Advent.InputFetcher.fetch_for_day(10, &parse_response_body/1)
   end
 end

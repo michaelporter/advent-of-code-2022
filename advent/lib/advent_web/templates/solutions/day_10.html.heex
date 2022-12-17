@@ -18,11 +18,13 @@
 
   <h1>Part Two:</h1>
 
+  <table>
   <%= for row <- @part_two do %>
-    <p>
-      <%= for pixel <- row do %>
-        <span><%= "#{pixel}" %> </span>
-      <%= end %>
-    </p>
+    <tr>
+    <%= for pixel <- row do %>
+        <td><%= "#{pixel}" %> </td>
+    <%= end %>
+    </tr>
   <%= end  %>
+  </table>
 </section>
