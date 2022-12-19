@@ -1,10 +1,63 @@
 defmodule Advent.Solution.Day11 do
 
   def part_one do
-    monkeys = parse_response_body
+    monkeys = get_problem_input
 
-    monkey_count = 8
+    iterations = Enum.to_list (0..19)
 
+    Enum.reduce(iterations, monkeys, fn (iteration, monkey_state) ->
+      monkeys
+      |> Enum.with_index
+      |> Enum.reduce(monkey_state, fn ({_, current_index}, monkey_state) ->
+        current_monkey = Enum.at(monkey_state, current_index)
+
+        %{
+          items: items,
+          operation: operation,
+          test: test,
+          true_destination: true_destination,
+          false_destination: false_destination,
+          inspections: inspections
+        } = current_monkey
+
+        monkey_moves = Enum.into(monkeys, [], fn _ -> [] end)
+
+        monkey_moves = Enum.reduce(items, monkey_moves, fn(item, monkey_moves) ->
+          upon_inspection = operation.(item)
+          unharmed_object = (upon_inspection / 3)
+          |> Float.to_string
+          |> String.split(".")
+          |> List.first
+          |> String.to_integer
+
+          dest_monkey_index = if test.(unharmed_object), do: true_destination, else: false_destination
+
+          List.update_at(monkey_moves, dest_monkey_index, fn monk -> monk ++ [unharmed_object] end)
+        end)
+
+        monkey_state = List.update_at(monkey_state, current_index, fn monk ->
+          Map.replace(monk, :inspections, monk[:inspections] + length(items))
+        end)
+
+        monkey_state = List.update_at(monkey_state, current_index, fn monk ->
+          Map.replace(monk, :items, [])
+        end)
+
+        monkey_moves
+        |> Enum.with_index
+        |> Enum.reduce(monkey_state, fn({monkey_move, monkey_index}, state) ->
+
+          List.update_at(state, monkey_index, fn monk ->
+            current_items = monk[:items]
+            Map.replace(monk, :items, current_items ++ monkey_move)
+          end)
+        end)
+      end)
+    end)
+    |> Enum.map(fn r -> r[:inspections] end)
+    |> Enum.sort
+    |> Enum.take(-2)
+    |> Enum.reduce(1, fn(monk, prod) -> monk * prod end)
   end
 
   ###
@@ -12,80 +65,76 @@ defmodule Advent.Solution.Day11 do
   def part_two do
   end
 
-  # I know there's an idiomatic way to get this but
-  # I don't have internet
-  defp divisible_by(int, by_int) do
-    # fn int ->
-    Float.to_string(int / by_int)
-    |> String.split(".")
-    |> Enum.at(1) == "0"
-    # end
-  end
-
   ###
 
   defp parse_response_body do
-
     [
       %{
         items: [98, 70, 75, 80, 84, 89, 55, 98],
         operation: &(&1 * 2),
-        divisible_by: 11,
+        test: &(rem(&1, 11) == 0),
         true_destination: 1,
-        false_destination: 2
+        false_destination: 4,
+        inspections: 0
       },
       %{
         items: [59],
         operation: &(&1 * &1),
-        divisible_by: 19,
+        test: &(rem(&1, 19) == 0),
         true_destination: 7,
-        false_destination: 3
+        false_destination: 3,
+        inspections: 0
       },
       %{
         items: [77, 95, 54, 65, 89],
         operation: &(&1 + 6),
-        divisible_by: 7,
+        test: &(rem(&1, 7) == 0),
         true_destination: 0,
-        false_destination: 5
+        false_destination: 5,
+        inspections: 0
       },
       %{
         items: [71, 64, 75],
         operation: &(&1 + 2),
-        divisible_by: 17,
+        test: &(rem(&1, 17) == 0),
         true_destination: 6,
-        false_destination: 2
+        false_destination: 2,
+        inspections: 0
       },
       %{
         items: [74, 55, 87, 98],
         operation: &(&1 * 11),
-        divisible_by: 3,
+        test: &(rem(&1, 3) == 0),
         true_destination: 1,
-        false_destination: 7
+        false_destination: 7,
+        inspections: 0
       },
       %{
         items: [90, 98, 85, 52, 91, 60],
         operation: &(&1 + 7),
-        divisible_by: 5,
+        test: &(rem(&1, 5) == 0),
         true_destination: 0,
-        false_destination: 4
+        false_destination: 4,
+        inspections: 0
       },
       %{
         items: [99, 51],
         operation: &(&1 + 1),
-        divisible_by: 13,
+        test: &(rem(&1, 13) == 0),
         true_destination: 5,
-        false_destination: 2
+        false_destination: 2,
+        inspections: 0
       },
       %{
         items: [98, 94, 59, 76, 51, 65, 75],
         operation: &(&1 + 5),
-        divisible_by: 2,
+        test: &(rem(&1, 2) == 0),
         true_destination: 3,
-        false_destination: 6
+        false_destination: 6,
+        inspections: 0
       }
     ]
   end
-
 
   defp get_problem_input do
     # Advent.InputFetcher.fetch_for_day(11, &parse_response_body/1)
@@ -144,6 +193,8 @@ defmodule Advent.Solution.Day11 do
     Test: divisible by 2
       If true: throw to monkey 3
       If false: throw to monkey 6"
-    # |> parse_response_body
+
+
+    parse_response_body
   end
 end
