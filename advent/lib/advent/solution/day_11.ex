@@ -1,5 +1,10 @@
 defmodule Advent.Solution.Day11 do
 
+  # I'd like to consolidate these such that I can pass in the "worry adjustment"
+  # function. Would need to curry to allow for different inputs?
+  #
+  # Right now I'm a week behind on AoC problems, so I'm not going to fine-tune this just yet.
+
   def part_one do
     monkeys = get_problem_input
 
@@ -71,7 +76,6 @@ defmodule Advent.Solution.Day11 do
     all_divisors = Enum.reduce(monkeys, 1, fn monk, p -> monk[:divisor] * p end)
 
     Enum.reduce(iterations, monkeys, fn (iteration, monkey_state) ->
-      IO.puts "Part 2: iteration #{iteration} / #{length iterations}"
       monkeys
       |> Enum.with_index
       |> Enum.reduce(monkey_state, fn ({_, current_index}, monkey_state) ->
@@ -268,6 +272,7 @@ defmodule Advent.Solution.Day11 do
     ]
   end
 
+  # I didn't parse the input this time; there is no honor here
   defp get_problem_input do
     # Advent.InputFetcher.fetch_for_day(11, &parse_response_body/1)
     "Monkey 0:
